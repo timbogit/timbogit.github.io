@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style type="text/css">
+      @import url(http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(http://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle
+# HTTP Conditional GET and you
+## Making your server work less
+
+tim.schmelmer@livingsocial.com
+???
+- Hi everyone, I am Tim, and I work on the Consumer Shared Services team
+- We build a lot of services there, and whenever I talk to people I find that
+  many don't realize how cool HTTP is, especially about built-in caching support
+- I hope you'll try some of this out with your own APIs
+---
+class: center, middle
+### If-Modified-Since / Last-Modified
+````
+    Client    <----------------------------->    Server
+ 1.    -               GET /deals/1.json           ->
+ 2.   <-      Last-Modified: Mon, 11 Aug 2014 ...   -
+...
+ 3.    -     If-Modified-Since: Mon, 11 Aug 2014   ->
+ 4.   <-          HTTP/1.1 304 Not Modified         -
+````
+???
+- HTTP supports several headers to help with caching
+- Some of those headers are client-side only, while others are server-only
+- This slide shows how the If-Modified-Since / Last-Modified pair
+- In the example, the client (left) makes its first request for deal 1 as JSON, not sending *any* such headers
+- The server responds with the data, and includes a *response* header with the last modification date for the data
+- The client now can store that date/time and add it as a If-Modified-Since *request* header
+- If nothing has changed since the requested modification time, then the server can respond with a simple 304
+  - no JSON re-serialization by the client needed, nor response reserialization on the server side
+---
+class: center, middle
+### If-None-Match / ETag
+````
+    Client    <----------------------------->    Server
+ 1.    -               GET /deals/1.json           ->
+ 2.   <-             ETag: "3e86-410-3596fbbc"      -
+...
+ 3.    -     If-None-Match: "3e86-410-3596fbbc"    ->
+ 4.   <-          HTTP/1.1 304 Not Modified         -
+````
+???
+- Another such header pair is ETag and If-None-Match
+- In this example, the client first makes a request without sending any related headers
+- The server responds with the data and a *response* header with a unique Entity Tag for the data, calculated server-side
+- The client now adds the tag it last received as the If-None-Match *request* header ...
+- and if the server finds that the requested entity's tag hasn't changed compared to the tag sent by the client, it can respond with
+  an empty-body 304 response
+---
+class: middle
+### `Cache-Control` header
+- `private`: shared caches / proxy cannot cache
+- `no-cache`: caches need to re-submit request to origin server
+- `public`: responses is cacheable
+- `max-age=[secs]`: max. time in secs a result is fresh
+???
+- Cache-Control is a *response* header a server can use to control all caching entities (from proxies to
+  browsers or other consuming end-clients) along the request/response chain
+- there are a lot of cache directives that can be included (and combined) in this header, but here are some
+  important ones we are using:
+  - `private`: browsers and client-side caches can store the response; shared (intermediate) caches & proxies cannot.
+  - `no-cache`: this forces caches to re-submit the request to origin server before releasing a cached copy; this useful to assure authentication.
+  - `public`: marks responses as cacheable (as `private` is the default).
+  - `max-age=[secs]`: indicated the maximum time in seconds the result is considered fresh, relative to the time of the request
+---
+class: middle
+### Using curl to try this out
+````
+$ curl -I "inventory-service-development.herokuapp.com/api/v1/inventory_items/321.json"
+
+HTTP/1.1 200 OK
+Cache-Control: max-age=300, public
+...
+Etag: "83c6c96f5042be326fce63a3e1fa0c9e"
+Last-Modified: Sun, 20 Apr 2014 05:40:29 GMT
+````
+````
+$ curl -I -H 'If-Modified-Since: Sun, 26 Apr 2014 05:40:29 GMT' "http://..."
+
+HTTP/1.1 304 Not Modified
+...
+Last-Modified: Sun, 20 Apr 2014 05:40:29 GMT
+````
+````
+$ curl -I -H 'If-None-Match: "83c6c96f5042be326fce63a3e1fa0c9e"' "http://..."
+
+HTTP/1.1 304 Not Modified
+...
+Etag: "83c6c96f5042be326fce63a3e1fa0c9e"
+````
+???
+- Here are some `curl` commands to an actual (toy) service we spun up that implement HTTP Conditional GET
+- the first request simply requests a resource, without adding any headers
+  - the service responds with the pertinent `Etag` and `Last-Modified` headers.
+- The next two statements now include the correct `If-Modified-Since` and `If-None-Match` headers respectively ...
+  - ... so the server can just respond with a 304 response.
+---
+class: center, middle
+### Browsers versus API clients
+
+Browsers insert Headers
+![PastedGraphic-1.png](https://draftin.com:443/images/15467?token=I8c6GdaBXKVEjBrla5t5p6QZ307hT47YqB9EzdV4k8brPdYTZTJ-7OT_veTPn51sZNabE_OyzQ5rJIZLoKAV5D0)
+
+Your usual API client won't / can't
+???
+- One thing to be aware of with regards to using browsers to test a JSON API:
+   - browsers automatically keep state and cache, so that they can insert those appropriate cache headers in the next request
+- Most of the API client implementations we are using do *not* honor the cache-control or conditional get headers ...
+  - ... as it usually is a little harder for web apps to keep state and invalidate such keep such state.
+---
+class: middle
+### [Varnish](https://www.varnish-cache.org/about) to the rescue
+![varnish-diagram-570x158.png](https://draftin.com:443/images/15468?token=VssfTBjIoN-ED2HSMgVxNiUPUZM7pmDvKLtUkXYHf8H73n7uesLoSPCFaAjBVBNoW6llDW5YfJ26G3gjayRfaXI)
+* respects `Cache-Control` headers
+* can insert `If-Modified-Since` / `If-None-Match`
+* grace mode: uses cached object with expired TTL
+* vrooom!
+???
+- This is where a reverse proxy (like varnish) comes in handy
+- Varnish is a caching proxy that sits between your clients and your service
+- It respects `Cache-Control` headers, caching only what the service tells it to cache
+- Varnish can be configured to insert the `If-Modified-Since` / `If-None-Match` request headers if API the clients do not
+- Another nice feature is grace mode:
+    * when in that mode, it uses a cached object even if their TimeToLive has expired
+    * this means it can deliver old content while fetching the latest content from the backend server
+    * it can also help uptime, as it can continue to serve stale data while no healthy backend is available
+- varnish also is blazing fast, as it is effectively just constrained by the speed of the network
+---
+class: middle
+### How to use this in your Rails app / service (1/2)
+````ruby
+class InventoryItemsController < ApplicationController
+  ...
+  # Show a single inventory_item
+  def show
+    render_if_stale(@item,last_modified: @item.updated_at.utc,etag: @item) do |presenter|
+      presenter.hash
+    end
+    # explicitly set the Cache-Control header to public and max-age,
+    # making the response cacheable for varnish
+    expires_in caching_time, public: true
+  end
+end
+````
+???
+- And finally, here is some Ruby code that implements HTTP Conditional GET
+- The controller action uses a small helper (which will see on the next slide)
+  to only serialize and render JSON for the requested object if the item is 'stale'
+- staleness is determined by any `If-None-Match` or `If-Modified-Since` headers the
+  client (or varnish) might be sending
+- The last line sets the correct cache control header, making it public, with a max-age of 5 minutes
+---
+class: middle
+### How to use this in your Rails app / service (2/2)
+````ruby
+class ApplicationController < ActionController::Base
+    ...
+    def caching_time
+      5.minutes
+    end
+
+    def not_found_with_max_age(max_age = caching_time)
+      head :not_found
+      expires_in max_age, public: true
+    end
+
+    # Renders the results of a block passed in as JSON, but only if the
+    # given 'staleness' critera are met.
+    # ...
+    # stale_criteria - the argument to pass on to Rails'
+    #                  `stale?` helper to determine freshness
+    # ...
+    def render_if_stale(entities, stale_criteria = nil, &blk)
+      return if !stale_criteria.nil? && !stale?(stale_criteria)
+
+      entity_array = Array(entities)
+      presenter_class = find_presenter(entity_array, params[:version])
+      return not_found_with_max_age(caching_time) unless presenter_class
+
+      render_presenter(entities, presenter_class, &blk)
+    end
+end
+````
+???
+- this is the common helper code used in all the controller actions of the service
+- first is the common caching time (5 minutes)
+- next is a helper to tell a client that the info wasn't found, and not to ask again for the next 5 minutes
+- lastly, the implementation of the `render_if_stale` helper
+  - as you can see, it asserts that the 'stale' criteria passed in are indeed met
+  - if the data is fresh, then Rails's `stale?` helper will actually set the response code to 304 automatically under the hood
+  - the actual presenter finding and object serialization code will only be executed in case the data is stale
+---
+class: middle
+### References
+* [A Beginner's Guide to HTTP Cache Headers](http://www.mobify.com/blog/beginners-guide-to-http-cache-headers/)
+* Wikipedia's [ETag entry](http://en.wikipedia.org/wiki/HTTP_ETag)
+* [Advanced Caching in Rails](http://hawkins.io/2012/07/advanced_caching_revised/)
+* This presentation at: [http://bit.ly/1neHDmm](http://bit.ly/1neHDmm)
+???
+- This pretty much all I wanted to mention for today
+- There are some great references out there on the web for this topic
+  - the first one is a good overview of this topic, more in-depth around the actual protocol behind this
+  - Wikipedia's entry about ETags is a very useful read, as well
+  - albeit a little dated, the "Advanced Caching in Rails" guide is very in-depth and offers lots of practical
+    advice
+  - and lastly, the bit.ly URL points you to my drop-box share which holds this HTML/MarkDown presentation
+    </textarea>
+    <script src="http://gnab.github.io/remark/downloads/remark-latest.min.js" type="text/javascript">
+    </script>
+    <script type="text/javascript">
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
