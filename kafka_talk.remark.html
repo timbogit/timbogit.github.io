@@ -43,8 +43,10 @@ class: middle
      - many systems don’t focus on high throughput (e.g., no batch APIs)
      - weak in supporting distribution (no good way to partition and store messages on several servers)
      - assume "near immediate" consumption of messages, allowing for only small queues; not a good fit for offline consumers of messages (like Data warehouse)
+
 - Log Aggregators (Facebook’s Scribe, Yahoo’s Data Highway, Cloudera’s Flume) aren’t a good fit because:
      - mostly built for consuming log data offline (after the fact by analyzing Hadoop / NFS shares)
+         - aren’t built for use in real-time search relevance, recommendations, targeted ads, "friend statuses", etc.
      - often expose implementation details (like “minute files” for Cloudera Flume)
      - “push” model (= message broker forwards data to consumers) not useful at LinkedIn, where consumers can decide how fast they can consume the messages
 ---
