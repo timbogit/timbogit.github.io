@@ -96,7 +96,7 @@ topic will be evenly distributed into these sub-streams
 ---
 class: middle, center
 ### Overall architecture
-![kafka-arch.png 480x362 pixels](https://www.evernote.com/shard/s153/sh/2a1301a8-c374-480e-9295-24ce086e027b/a9cb8848b947e4997c6bb267537797c2/res/cd2a9fac-84ca-453d-a033-815114574371.png?resizeSmall&width=400)
+![kafka-arch.png 480x362 pixels](https://draftin.com:443/images/18299?token=6gshJYXy_cbEyRPnl6UdzQvVjHCP-3F3dUKQaW-SD6O7KxNIsSS40e2VEutJGZjV-9XvXnHKOceFXtAWpfktS_8)
 ???
 -  Kafka cluster consists of multiple brokers
 -  topic is divided into multiple partitions, each broker stores one or more of those partitions
@@ -185,7 +185,7 @@ class: middle
 ---
 class: middle, center
 ### Consumer rebalancing
-![algorithm_rebalancing.pmg 480x362 pixels](https://www.evernote.com/shard/s153/sh/2a1301a8-c374-480e-9295-24ce086e027b/a9cb8848b947e4997c6bb267537797c2/res/cdba8c94-5a46-4988-af92-fe91ab239545.png?resizeSmall&width=400)
+![algorithm_rebalancing.png 480x362 pixels](https://draftin.com:443/images/18298?token=9Sc12heF8rwDsv_qvK3bTHbFM3Z-kpYa9V-HybnE0GJKqEEnROwR4YR85MsAkh9FxUk6NFd3-Psq43A3L56qe4M)
 ???
 * Consumer coordination strategy:
  * each consumer in a group notified of a broker or a consumer change.
@@ -222,7 +222,7 @@ class: middle
 ---
 class: middle, center
 ### LinkedIn's deployment
-![kafka-deploy.png 452x424 pixels](https://www.evernote.com/shard/s153/sh/2a1301a8-c374-480e-9295-24ce086e027b/a9cb8848b947e4997c6bb267537797c2/res/fedf60dc-c0cc-454a-89ac-37783fc8bfec.png?resizeSmall&width=500)
+![kafka-deploy.png 452x424 pixels](https://draftin.com:443/images/18297?token=VUFZWPAOb5H0wDj9DlWJhDcF5sOssAZ9FtQ7uINGEna1DXzqpF1pSPrqyVvcsirB2Nq92LBmq9tgNg3Y5LwYu6c)
 ???
 - frontend services generate log data and publish it to brokers in batches.
      — rely on load-balancer to evenly distribute to the brokers
@@ -249,8 +249,8 @@ class: middle, center
 ---
 class: middle, center
 ### Performance results
-![kafka-producer-perf.png 452x424 pixels](https://www.evernote.com/shard/s153/sh/2a1301a8-c374-480e-9295-24ce086e027b/a9cb8848b947e4997c6bb267537797c2/res/48b66dce-42d2-494f-8d6e-313f1d54b51d.png?resizeSmall&width=225)
-![kafka-consumer-perf.png 452x424 pixels](https://www.evernote.com/shard/s153/sh/2a1301a8-c374-480e-9295-24ce086e027b/a9cb8848b947e4997c6bb267537797c2/res/ba13ef69-d4c2-4c2d-bf28-14fba34e603b.png?resizeSmall&width=225)
+![kafka-producer-perf.png 452x424 pixels](https://draftin.com:443/images/18296?token=1RTkcDxRm8XIcQ_PB_ipNALJ-qizQ02hrH1eSUkCP9frYlBmMAV4-ayPi7QlVRGM9HKo3mXcEwTr0WETZ8_J-tc)
+![kafka-consumer-perf.png 452x424 pixels](https://draftin.com:443/images/18295?token=wULHcWQTkRPAqlKVG0xrJ51b0W4qJG4whIwNRkc7gl-hVR81MVVeGXqVcMR8dDwfmlvQbytjM-7s-yD4GVSdT_0)
 ???
 - comparisons to ActiveMQ v5.4/ JMS, and RabbitMQ v2.4
 - test set-up:
