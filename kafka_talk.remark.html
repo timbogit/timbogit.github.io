@@ -40,7 +40,7 @@ class: middle
 
 - Other EMBs (ActiveMQ, IBM Websphere MQ, Oracle Enterprise Messaging Service, TIBCO) not a good match for log processing:
      - a rich set of delivery guarantees often overkill for collecting log data, increase in API and system complexity
-     - many systems on’t focus on high throughput (e.g., no batch APIs)
+     - many systems don’t focus on high throughput (e.g., no batch APIs)
      - weak in supporting distribution (no good way to partition and store messages on several servers)
      - assume "near immediate" consumption of messages, allowing for only small queues; not a good fit for offline consumers of messages (like Data warehouse)
 - Log Aggregators (Facebook’s Scribe, Yahoo’s Data Highway, Cloudera’s Flume) aren’t a good fit because:
@@ -75,8 +75,7 @@ class: middle
     set = new MessageSet(message);
     producer.send(“topic1”, set);
     ````
-      - Note:
-          — the producer can send a set of messages in a single publish request
+     - Note: the producer can send a set of messages in a single publish request
 - “Consumer”:
      - can subscribe to one or more topics from the brokers
      - sample code:
@@ -87,12 +86,12 @@ class: middle
           // do something with the bytes
      }
      ````
-       - Note:
-          — consumer first creates one or more message streams for the topic. The messages published to that
+     - Note:
+      - consumer first creates one or more message streams for the topic. The messages published to that
 topic will be evenly distributed into these sub-streams
-          —  message stream iterator never terminates. If there are no more messages to consume, the iterator blocks until new messages are published to the topic
-          —  point-to- point delivery model: multiple consumers jointly consume a single copy of all messages in a topic,
-          —  publish/subscribe model: multiple consumers each retrieve its own copy of a topic
+      - message stream iterator never terminates. If there are no more messages to consume, the iterator blocks until new messages are published to the topic
+      - point-to- point delivery model: multiple consumers jointly consume a single copy of all messages in a topic,
+      - publish/subscribe model: multiple consumers each retrieve its own copy of a topic
 ---
 class: middle, center
 ### Overall architecture
@@ -130,16 +129,16 @@ class: middle
 
 - Caching message:
      - Kafka explicitly avoids caching messages in memory, instead relying on the underlying file system's page cache
-          — broker restarts always with a warm cache
-          — very little overhead in garbage collecting
-          — exploits Linux sendfile API to directly transfer bytes from file to a socket
+      - broker restarts always with a warm cache
+      - very little overhead in garbage collecting
+      - exploits Linux sendfile API to directly transfer bytes from file to a socket
 
 - Stateless Brokers:
      - information about consumer positions in topic not maintained by the broker, but by the consumers
      - deletion policy based on a time-based SLA
      - benefit: consumers can rewind back to a previous offset and re-consume data
-          — nice if error in consumer application logic gets fixed, and one can replay messages from before the outage (e.g., ETL data loads into our data warehouse or Hadoop system)
-          — also: if the consumer crashes, potentially unflushed data is lost. Consumer can checkpoint the smallest offset of the unflushed messages and re-consum---
+      - nice if error in consumer application logic gets fixed, and one can replay messages from before the outage (e.g., ETL data loads into our data warehouse or Hadoop system)
+      - also: if the consumer crashes, potentially unflushed data is lost. Consumer can checkpoint the smallest offset of the unflushed messages and re-consum---
 ---
 class: middle
 ### Consumer / Producer / Broker interactions
@@ -160,28 +159,28 @@ class: middle
 
 ???
 - Producers:
-     - fairly uninteresting, can publish to random partition, or a partition selected semantically (via key or partition function)
+ - fairly uninteresting, can publish to random partition, or a partition selected semantically (via key or partition function)
 - Consumers:
-     - consumer group:
-          — >= 1 consumer jointly consuming a (set of) topic(s), so that a message is only ever delivered to *one single consumer* in the group
+ - consumer group:
+     - 1+ consumer jointly consuming a (set of) topic(s), so that a message is only ever delivered to *one single consumer* in the group
  - Partitioning scheme:
      - partition in a topic is smallest unit of parallelism: all messages from one partition are consumed by a single consumer within each consumer group
-          — less locking / state maintenance overhead
+     - less locking / state maintenance overhead
      - consumer load balancing: to be balanced, make many more partitions in a topic than the consumers in each group (“over- partitioning")
      - consuming processes only need co-ordinate very infrequently (= when the consumers in a group rebalance the load)
 - Distribution strategies using Zookeeper (file-system like consensus service):
-     - Broker registry:
-          — broker’s host name and port, and the set of topics and partitions stored on it
-          — ephemeral, removed when a broker fails
-     - Consumer registry:
-          — consumer group to which a consumer belongs and the set of topics that it subscribes to
-          — ephemeral, removed when consumer fails
-     - Ownership registry:
-          — path for every subscribed partition, where path value is the id of the consumer currently consuming (= ‘owning’) from this partition
-          — ephemeral, removes all respective entries when consumer fails
-     - Offset registry:
-          — for each subscribed partition, stores offset of the last consumed message in the partition
-          — only persistently created Zookeeper registry
+ - Broker registry:
+     - broker’s host name and port, and the set of topics and partitions stored on it
+     - ephemeral, removed when a broker fails
+ - Consumer registry:
+     - consumer group to which a consumer belongs and the set of topics that it subscribes to
+     - ephemeral, removed when consumer fails
+ - Ownership registry:
+     - path for every subscribed partition, where path value is the id of the consumer currently consuming (= ‘owning’) from this partition
+     - ephemeral, removes all respective entries when consumer fails
+ - Offset registry:
+     - for each subscribed partition, stores offset of the last consumed message in the partition
+     - only persistently created Zookeeper registry
 ---
 class: middle, center
 ### Consumer rebalancing
@@ -189,13 +188,18 @@ class: middle, center
 ???
 * Consumer coordination strategy:
  * each consumer in a group notified of a broker or a consumer change.
+
  * consumer first computes the set (PT) of partitions available for each subscribed topic T and the set (CT) of consumers subscribing to T; then range-partitions PT into |CT| chunks and deterministically picks one chunk to own.
+
  * For each partition the consumer picks, it writes itself as the new owner of the partition in the ownership registry.
+
  * Finally, the consumer begins a thread to pull data from each owned partition, starting from the offset stored in the offset registry.
+
  * As messages get pulled from a partition, the consumer periodically updates the latest consumed offset in the offset registry.
+
  * Conflict resolution (when a consumer tries to take ownership of a partition still owned by another consumer):
-   * first consumer releases all the partitions it currently owns, backs off and re-enters the above ‘reballancing’ process
-   * theoretically infinitely stuck in this process, but in practice “rebalance process often stabilizes after only a few retries"
+     * first consumer releases all the partitions it currently owns, backs off and re-enters the above ‘reballancing’ process
+     * theoretically infinitely stuck in this process, but in practice “rebalance process often stabilizes after only a few retries"
 ---
 class: middle
 ### Delivery guarantees
@@ -209,43 +213,43 @@ class: middle
 
 ???
 - Delivery Guarantees
-     - at least once:
-          — in the cases where a consumer process crashes without a clean shutdown / doesn’t correctly report back the last consumed message offset, the consumer process that takes over those partitions owned by the failed consumer may get some duplicate messages.
-     - in order:
-          — … but only for messages in the same partition, *not* across partitions in the same topic.
-     - guarding against corrupted messages:
-          — Kafka stores a CRC for each message in the log
-          — CRC at the message level allow for checks of I/O error on broker machine, as well as of network errors after a message is produced / consumed
-     - if broker goes down:
-          — any message stored on it not yet consumed becomes unavailable. If the storage system on a broker is permanently damaged, any unconsumed message is lost forever.
-          — plans to add built-in replication of messages across multiple brokers to address this
+  - at least once:
+      - in the cases where a consumer process crashes without a clean shutdown / doesn’t correctly report back the last consumed message offset, the consumer process that takes over those partitions owned by the failed consumer may get some duplicate messages.
+  - in order:
+      - … but only for messages in the same partition, *not* across partitions in the same topic.
+  - guarding against corrupted messages:
+      - Kafka stores a CRC for each message in the log
+      - CRC at the message level allow for checks of I/O error on broker machine, as well as of network errors after a message is produced / consumed
+  - if broker goes down:
+      - any message stored on it not yet consumed becomes unavailable. If the storage system on a broker is permanently damaged, any unconsumed message is lost forever.
+      - plans to add built-in replication of messages across multiple brokers to address this
 ---
 class: middle, center
 ### LinkedIn's deployment
 ![kafka-deploy.png 452x424 pixels](https://draftin.com:443/images/18297?token=VUFZWPAOb5H0wDj9DlWJhDcF5sOssAZ9FtQ7uINGEna1DXzqpF1pSPrqyVvcsirB2Nq92LBmq9tgNg3Y5LwYu6c)
 ???
 - frontend services generate log data and publish it to brokers in batches.
-     — rely on load-balancer to evenly distribute to the brokers
+   - rely on load-balancer to evenly distribute to the brokers
 - online (real-time) consumers run in services within the same datacenter
 - another cluster of Kafka in a separate datacenter
-     — for offline analysis, located geographically close to our Hadoop cluster and other data warehouse infrastructure
-     — also, for prototyping and to run scripts against the raw event streams for ad hoc querying.
+   - for offline analysis, located geographically close to our Hadoop cluster and other data warehouse infrastructure
+   - also, for prototyping and to run scripts against the raw event streams for ad hoc querying.
 - end-to-end latency: 10 seconds on average
 - data processed: 100’s of gigabytes of data / ~ 1,000,000,000 messages per day
-     — not all legacy systems converted to use Kafka at that point
+   - not all legacy systems converted to use Kafka at that point
 - rebalance process: automatically redirect consumption when Ops starts / stops brokers
 - auditing system:
-     — messages carry the timestamp and server name when generated.
-     — each producer periodically generates a monitoring event, recording # of messages published for each topic within a fixed time window, and publishes monitoring events to a separate topic
-     — consumers count # of messages they have received from a given topic and validate those counts with the monitoring events
+   - messages carry the timestamp and server name when generated.
+   - each producer periodically generates a monitoring event, recording # of messages published for each topic within a fixed time window, and publishes monitoring events to a separate topic
+   - consumers count # of messages they have received from a given topic and validate those counts with the monitoring events
 - sucking data into Hadoop / Data Warehouse:
-     — MapReduce jobs load the raw data & regroups and compresses it for efficient further processing
-     — stateless broker / client-side storage of offsets allow MapReduce tasks (which can fail and be restarted) to be managed to handle data load without duplicating / losing messages
+   - MapReduce jobs load the raw data & regroups and compresses it for efficient further processing
+   - stateless broker / client-side storage of offsets allow MapReduce tasks (which can fail and be restarted) to be managed to handle data load without duplicating / losing messages
 - serialization protocol: Apache Avro
-     — because message schemas can evolve
-     — Messages store the ID of the Avro schema along with the message (= raw bytes)
-     — allows for enforcing a contract between data producers and consumers, to ensure compatibility
-          —> they use a schema registry to retrieve the schema
+   - because message schemas can evolve
+   - Messages store the ID of the Avro schema along with the message (= raw bytes)
+   - allows for enforcing a contract between data producers and consumers, to ensure compatibility
+       - they use a schema registry to retrieve the schema
 ---
 class: middle, center
 ### Performance results
@@ -254,23 +258,23 @@ class: middle, center
 ???
 - comparisons to ActiveMQ v5.4/ JMS, and RabbitMQ v2.4
 - test set-up:
-     — 2 Linux machines(8 2GHz cores, 16GB mem, 6 disks RAID 10), connected via 1Gb network link.
-     — 1 machine broker, 1 producer or consumer.
+   - 2 Linux machines(8 2GHz cores, 16GB mem, 6 disks RAID 10), connected via 1Gb network link.
+   - 1 machine broker, 1 producer or consumer.
 - Producer tests:
-     — one producer to publish 10 million messages with 200 bytes
-     — batch sizes 1 vs 50. (ActiveMQ and RabbitMQ can’t easily batch messages)
-     — Kafka better because:
-          — if doesn’t wait for ACK from broker
-          — overhead of 9 bytes per msg in Kafka vs144 bytes in ActiveMQ. => ActiveMQ was using 70% more space than Kafka to store the same set of 10 million messages.
+   - one producer to publish 10 million messages with 200 bytes
+   - batch sizes 1 vs 50. (ActiveMQ and RabbitMQ can’t easily batch messages)
+   - Kafka better because:
+       - if doesn’t wait for ACK from broker
+       - overhead of 9 bytes per msg in Kafka vs144 bytes in ActiveMQ. => ActiveMQ was using 70% more space than Kafka to store the same set of 10 million messages.
 - Consumer test:
-     — one consumer to retrieve10 millions messages
-     — each pull request fetched ~ 1000 messages / ~ 200KB
-     — ActiveMQ and RabbitMQ set to acknowledge automatically
-     — messages fit in memory, all systems were serving data from the page cache of the underlying file system or some in-memory buffers
-     — Kafka better because:
-          — Kafka has more efficient storage format, fewer bytes to transferred to consumer
-          — broker in ActiveMQ and RabbitMQ has to maintain delivery state of every message
-          — in using the sendfile API, Kafka reduces transmission overhead
+   - one consumer to retrieve10 millions messages
+   - each pull request fetched ~ 1000 messages / ~ 200KB
+   - ActiveMQ and RabbitMQ set to acknowledge automatically
+   - messages fit in memory, all systems were serving data from the page cache of the underlying file system or some in-memory buffers
+   - Kafka better because:
+       - Kafka has more efficient storage format, fewer bytes to transferred to consumer
+       - broker in ActiveMQ and RabbitMQ has to maintain delivery state of every message
+       - in using the sendfile API, Kafka reduces transmission overhead
 ---
 class: middle
 ### Future work / Conclusion
@@ -283,11 +287,11 @@ class: middle
 ???
 
 - Durability and data availability guarantees:
-      — add built-in replication of messages across multiple brokers to address unrecoverable broker failures
+   - add built-in replication of messages across multiple brokers to address unrecoverable broker failures
 
 - Stream processing capabilities
-     — plans for a library of helpful stream utilities, (windowing functions, join techniques, etc.)
-          — window-based counting and joining each message with records in a secondary store or with messages in another stream
+   - plans for a library of helpful stream utilities, (windowing functions, join techniques, etc.)
+       - window-based counting and joining each message with records in a secondary store or with messages in another stream
 ---
 class: middle
 ### My personal take-aways
@@ -300,9 +304,14 @@ class: middle
 - Very much focussed on log data only, while now more used as a general Enterprise Messaging Bus
   - Interesting to see it was developed with log data as its main intent, given the first use case cited
 
-- The papaer says that its main take-away is "to illustrate the potential performance gain that can be achieved by a specialized system"
+- The paper says that its main take-away is "to illustrate the potential performance gain that can be achieved by a specialized system"
   - while the intent was to avoid feature bloat, the documentation makes it sound like it is *also* a silver bullet for
-    - Messaging, Website Activity Tracking, Metrics, Stream Processing, Event Sourcing, Commit Logs, ...
+      - Messaging,
+      - Website Activity Tracking,
+      - Metrics, Stream Processing,
+      - Event Sourcing,
+      - Commit Logs,
+      - ...
 
 ---
 class: middle
