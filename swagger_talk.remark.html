@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Documenting and exploring your APIs with Swagger</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style type="text/css">
+      @import url(http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(http://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle
+# Documenting and exploring your APIs
+## using swagger specs, `swagger_yard` and swagger UI
+
+tony.pitale@@livingsocial.com
+tim.schmelmer@livingsocial.com
+???
+- Hi everyone, I am Tim, and I work on the Consumer Shared Services team
+- As the team name denotes, we are building and maintaining a set of services there, and we have recently started to try and adopt
+a common way of describing, documenting, and testing our RESTful APIs with a set of tools
+- This talk will give you a conceptual overview of these tools and show off some of the hings they bring to the table
+---
+class: middle
+### Motivation
+
+* Why document, it's just RESTful?
+
+* explore your API
+
+* machine readable / cross-language
+
+???
+* So *why on earth* document a RESTful API?
+  * RESTful, it doesn't really say much in detail.
+  * What HTTP Status (success and error) codes will you use for which situations
+  * `204` or `200` response codes for successful `POST`s/`PUT`s?
+  * which `4xx` code range of messages do you support, and will there be additional error messaging?
+  * where does authentication / authorization go: into the header, in a URL parameter, ...?
+  * What about versioning information? Where will it go?
+
+* Explorer is hte killer feature
+
+* Swagger can serve as general, cross-platform IDL
+---
+class: middle
+### The parts
+* swagger-spec
+  * {show JSON here}
+
+* swagger_yard
+  * {show swagger_yard comment here}
+
+* swagger_ui
+  * {show an image of the explorer here}
+???
+
+
+- swagger-spec:
+     - explain what this does / is
+- swagger-yard:
+     - explain
+- swagger_ui:
+     - more blah
+
+---
+class: middle
+### Demo time
+* [docs for an API and operations](http://code.livingsocial.net/tschmelmer/consumer-service/blob/master/app/controllers/locations_controller.rb)
+
+* [docs for model](http://code.livingsocial.net/tschmelmer/consumer-service/blob/master/app/models/location.rb)
+
+* [swagger UI on myQA](http://consumer-service.consumer-shared-services.qa.livingsocial.net/swagger/doc#!/locations)
+  * point out sections in UI just defined
+  * show raw JSON specs
+  * play with API endpoints
+???
+
+
+- Operation docs:
+     - show the various sections of the API definitions
+- Model Docs:
+     - show the various sections of the model definitions
+- swagger UI:
+  - point out sections in UI just defined
+  - show raw JSON specs
+  - play with API endpoints
+
+---
+class: middle
+### Final thoughts
+* Feedback while designing
+
+* Please play and contribute!
+
+* Next steps
+  * integrating with techops-web
+  * experiment with on-the-fly client generation
+
+
+???
+
+- design feedback:
+     - get feedback before implementing your API
+     - quick iteration on showing updates
+- play and contribute:
+     - we always find new stuff we need
+     - tony.pitale@ or tim.schmelmer@ are more than happy to help
+- next steps:
+  - would like to get away from having to host swagger UI in every project
+    - instead have a single swagger Explorer somewhere in techops-web and just point it at the different API specs
+  - adam.keys@ is experimenting with a way to consume the API JSON specs from a given URL and then auto-generate Ruby objects that expose the APIs defined there
+    - potential to get out of the game of maintaining client gem projects for each service
+---
+class: middle
+### References
+* [swagger-spec v1.2](https://github.com/wordnik/swagger-spec/blob/master/versions/1.2.md)
+
+* [swagger-ui](https://github.com/wordnik/swagger-ui)
+
+* [Tony P.'s swagger-yard fork](https://github.com/tpitale/swagger_yard)
+
+* [Consumer-Service Swagger UI](http://consumer-service.consumer-shared-services.qa.livingsocial.net/swagger/doc)
+
+* [Other related swagger projects](https://github.com/wordnik?query=swagger)
+
+* This presentation at: [http://timbogit.github.io/swagger_talk.remark.html](http://timbogit.github.io/swagger_talk.remark.html)
+???
+- This pretty much all I wanted to mention for today
+- Here are some references for this talk
+  - the first one is ...
+  - ...
+  - and you can find this presentation on github.io (Remark = a HTML/MarkDown presentation)
+    </textarea>
+    <script src="http://gnab.github.io/remark/downloads/remark-latest.min.js" type="text/javascript">
+    </script>
+    <script type="text/javascript">
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
