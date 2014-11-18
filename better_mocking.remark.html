@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>A safer way to mock</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style type="text/css">
+      @import url(http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(http://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle
+# A safer way to mock
+## using realistic test doubles
+
+
+@twitty_tim / tim.schmelmer@livingsocial.com
+???
+- Hi everyone, I am Tim, and I work on the Core Services team at livingsocial
+- yes, we are hiring, and it is a *awesome* place to work
+---
+class: middle
+### Motivation
+
+* SOA apps have dependencies
+
+* VCR cassettes are big and become stale
+
+* General mocking cumbersome & only a "snapshot"
+
+???
+* So *why on earth* document a RESTful API?
+    * RESTful, it doesn't really say much in detail.
+    * What HTTP Status (success and error) codes will you use for which situations
+      * Is `204` or `200` the response codes for a successful `POST`s/`PUT`s?
+      * which `4xx` code range of messages do you support, and will there be additional error messaging?
+    * where does authentication / authorization go: into the header, in a URL parameter, ...?
+    * what about versioning information? Where will it go?
+
+* We wanted a way to play around with our APIs from a client-perspective
+  * The Swagger tool chain comes with a HTML/CSS/JavaScript UI
+  * This UI can consume swagger API specifications (= JSON files)
+  * A spiffy UI is rendered that not only shows the documentation, but let's you make API calls and renders results
+
+* Swagger can serve as ageneral, cross-platform IDL
+  * There are tools for generating:
+     * service stubs from the specs in Scala, Java, HTML5
+     * client libraries/gems in Scala, Flash, Java, ObjC, PHP, Python(3), and Ruby
+    * and, *DON'T PANIC* ... code generation is optional, if you don't *want* use it
+---
+class: middle
+### Built-in, realistic mocks
+
+* We still use test doubles for test speed
+
+* Deliver realistic samples into the client gem
+
+* Evolve samples in lock-step with your service API
+
+???
+
+This and the following two slides will show the parts of the tool chain we have started adopting.
+
+First off, `swagger-yard`:
+- It's a gem that gets mounted as a Rails engine inside your application
+- Swagger Yard parses your controllers and models for YARD documentation
+  - ... for specific YARD tags like `@parameter`, `@response_type`, or `@error_message`
+  - ... and generates a JSON file specifying the API as its output (a sample of which we will see on the next slide)
+- The reason Swagger Yard is a mountable Rails engine is that it can also *display* the swagger UI to explore your API (which we will see in two slides)
+---
+class: middle
+### Our approach: Pluggable backends
+
+* Two backends
+  * 'real' one for actual service calls
+  * short-circuited 'mock' one for tests
+  * both fulfill the same contract ('abstract class')
+
+* mock backend serves backend data out of in-memory cache
+
+* The gem's main API accessor class
+  * has `backend` accessors (`attr_writer: backend`)
+  * only calls methods on current backend defined in 'abstract' contract
+
+
+???
+Here is the resulting JSON file that  `swagger_yard` created.
+
+It represents the API we saw on the previous slide, conforming to the Swagger specification schema (version 1.2)
+
+As you can see, it specifies a base-path where the API is located, and subsequently the `operation` for each of the API endpoints.
+
+This JSON specification is available via the mounted swagger-yard engine, and then consumed and processed by Swagger UI (which is next)
+
+---
+class: middle
+### Our approach: Realistic canned responses
+
+* mock backend serves objects with same API as the objects returned by 'real' backend
+  * they are instances of the same model classes
+
+* mock backend comes pre-loaded with realistic 'fakes'
+???
+
+This UI explorer is the tool that -to me- is the killer feature of Swagger over most other tool chains I have seen.
+
+This JavaScript-based UI lets you easily visualize the API a service exposes.
+
+As explain before, you can simply point it at the Swagger JSON spec of *any* API, and it consumes that spec to generate this UI.
+
+Herein, you cannot only view the documentation, but in fact make API calls right from within your browser and explore its behavior and results.
+
+---
+class: middle
+### Our approach: Running tests in mock mode
+
+* Ease of test set-up
+  * applications under test place the service client library into ‘mock mode’, thereby configuring it to serve responses entirely out of the mock backend’s registry of pre-loaded response objects
+
+* Customizing mocks
+  * serve the needs of special-case, non-standard situations, the client library allows for creating additional mock objects, and for adding / removing them to / from the mock backend’s business object registry
+
+* mock backend comes pre-loaded with realistic 'fakes'
+???
+
+This UI explorer is the tool that -to me- is the killer feature of Swagger over most other tool chains I have seen.
+
+This JavaScript-based UI lets you easily visualize the API a service exposes.
+
+As explain before, you can simply point it at the Swagger JSON spec of *any* API, and it consumes that spec to generate this UI.
+
+Herein, you cannot only view the documentation, but in fact make API calls right from within your browser and explore its behavior and results.
+
+---
+class: middle
+### Why use this approach?
+
+* still use mocks
+  * fast
+  * no 'repo pollution' (VCR cassettes, anyone?)
+
+* increase level of confidence in test suite
+  * mock objects to evolve in lock-step with the client library version
+
+* less ceremony and boilerplate code
+*  realistic 'fakes'
+???
+
+This UI explorer is the tool that -to me- is the killer feature of Swagger over most other tool chains I have seen.
+
+This JavaScript-based UI lets you easily visualize the API a service exposes.
+
+As explain before, you can simply point it at the Swagger JSON spec of *any* API, and it consumes that spec to generate this UI.
+
+Herein, you cannot only view the documentation, but in fact make API calls right from within your browser and explore its behavior and results.
+
+---
+class: middle
+### References
+* [https://techblog.livingsocial.com](https://techblog.livingsocial.com/blog/2014/11/18/a-smarter-way-to-mock/)
+
+* [Test Double pattern](http://xunitpatterns.com/Test%20Double.html)
+
+* [Martin Fowler's "Mocks aren't stubs"](http://martinfowler.com/articles/mocksArentStubs.html)
+
+* This presentation at: http://timbogit.github.io/better_mocking.remark.html
+???
+- This pretty much all I wanted to mention for today
+- Here are some references for this talk
+    - first is livingsocial engineering's tech blog
+      - you'll find a much more detailed post on this topic, showing code about our approach
+    - the next two links are great general references on the topic of test doubles
+      - the first one is a link to the pattern definition on Xunit Patterns
+      - the second one is a really good article by Martin Fowler on the topic
+    - and finally you can find this presentation on my GH pages
+      - it's a "Remark.js" (= HTML with markdown) presentation,so you can hit "p" to see the presenter notes
+    </textarea>
+    <script src="http://gnab.github.io/remark/downloads/remark-latest.min.js" type="text/javascript">
+    </script>
+    <script type="text/javascript">
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
