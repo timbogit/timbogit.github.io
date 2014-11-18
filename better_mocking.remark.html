@@ -126,8 +126,10 @@ class: middle
   ````ruby
   # add a couple of cities to the mock mode's backend data
   my_test_cities = [
-    LS::Cities::TestMocks.custom_city(id: 42, display_name: 'My City', ...),
-    LS::Cities::TestMocks.custom_city(id: 43, display_name: 'Your City', ...)]
+      LS::Cities::TestMocks.custom_city(id: 42, display_name: 'My City', ...),
+      LS::Cities::TestMocks.custom_city(id: 43, display_name: 'Your City', ...)
+  ]
+  
   LS::Cities.backend.add_cities(*my_test_cities)
   ````
 
