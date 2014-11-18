@@ -40,10 +40,10 @@ class: middle
 ???
 * We maintain a large number of inter-dependent apps and services
   * we develop the services, client-applications *and* service access gems
-  * how do you test in them all in isolation?
+  * how do you test them all in isolation?
 
 * We use VCR for short-circuiting some of the calls to dependencies
-  * but who here really likes committing, and maintaining, all those cassettes in your repo?
+  * but who here really likes committing, and maintaining, all those cassettes in their repo?
   * also, VCR cassettes are only good if you refresh them regularly, and finding the right frequency for that is hard
 
 * Using tools like mocha, RSpec mocks results in lots of set-up code
@@ -66,7 +66,7 @@ Faced with that, our team at LivingSocial started using a new approach
 * We still use test doubles to not compromise on test suite runtimes
 
 * But: we are also the maintainers of our client gems
-  ** we are in the position to add realistic sample objects to the gems that expose the service APIs
+  * we are in the position to add realistic sample objects to the gems that expose the service APIs
 
 * We evolve our mocks (meant to be used by client apps in their tests) in lock-step with our service APIs
 
