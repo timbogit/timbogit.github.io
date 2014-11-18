@@ -94,7 +94,7 @@ We implement two backends in our client gems:
 
 Key is that both (fake and real) backends expose the exact same interface
 * The layer of the gem that exposes the actual API has methods to inject one of these two backends
-* That main API-exposing layer *onl* calls backend methods that are part of this contract
+* That main API-exposing layer *only* calls backend methods that are part of this contract
 
 ---
 class: middle
