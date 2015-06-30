@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>A safer way to mock</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style type="text/css">
+      @import url(http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(http://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle
+# Moving to a SOA at LivingSocial
+### Lessons learned
+
+
+@twitty_tim / tim.schmelmer@livingsocial.com
+???
+- Hi everyone, I am Tim, and I work on the Core Services team at livingsocial
+- yes, we are hiring, and it is a *awesome* place to work
+---
+class: middle, center
+### In the beginning
+
+Pick your five
+
+![PickYourFive.jpg](pick5.jpg)
+
+
+???
+* Just a facebook app
+  * simply Ruby on Rails app for users to 'pick their five' favorites
+  * number one application developer on Facebook, measured by page views
+
+
+---
+class: middle, center
+# Early deal site
+
+Simply one deal a day
+
+![OneDeal.jpg](OneDeal.png)
+???
+
+* One single deal a day
+  * first only in Washington, D.C., ... then the region
+  * then nationwide in > 500 markets
+
+---
+class: middle, center
+# Massive "Whale" deals
+
+Amazon giftcard, Whole Foods
+
+![AmazonDeal.png](AmazonDeal.png)
+
+![WholeFoodsDeal.png](WholeFoodsDeal.png)
+
+???
+Hugely popular deals
+* selling 1 million + in less than 24 hours
+
+---
+class: middle, center
+# Scaling is hard
+
+... and expensive
+
+![sitedown.png](sitedown.png)
+
+???
+
+* 80,000 LOC, one 'Mono Rails' app, 120 developers
+
+---
+class: middle, center
+# How did we get here?
+
+![today.png](today.png)
+
+???
+* How did we get to the current site experience?
+  * How do we move forward?
+---
+class: middle
+# Generalized transistion steps
+
+* See [here](https://docs.google.com/document/d/1Zjb7E5e-5YoR1QGbS1Ein52P-zfXauiNmcYahAICPGE/edit#heading=h.126fwkzda2hf)
+
+???
+Speak about the general steps
+
+---
+class: middle
+# Better way: avoid monorails!
+
+* See:
+  * SOA from the start ... [it's not that much harder](https://techblog.livingsocial.com/blog/2014/05/06/soa-the-what-the-why-and-the-rules-of-engagement/)
+  * [full SOA series on LS Tech blog in general](https://techblog.livingsocial.com/blog/categories/soa/)
+
+???
+Speak about the general steps
+
+---
+class: middle
+### References
+* [https://techblog.livingsocial.com](https://techblog.livingsocial.com/)
+
+* [Martin Fowler's "Mocroservices"](http://martinfowler.com/articles/microservices.html)
+
+* This presentation at: http://timbogit.github.io/soa_at)livingsocial.remark.html
+???
+- This pretty much all I wanted to mention for today
+- Here are some references for this talk
+    - first is livingsocial engineering's tech blog
+      - you'll find a much more detailed post on this topic, showing code about our approach
+    - the next two links are great general references on the topic of test doubles
+      - the first one is a link to the pattern definition on Xunit Patterns
+      - the second one is a really good article by Martin Fowler on the topic
+    - and finally you can find this presentation on my GH pages
+      - it's a "Remark.js" (= HTML with markdown) presentation,so you can hit "p" to see the presenter notes
+    </textarea>
+    <script src="http://gnab.github.io/remark/downloads/remark-latest.min.js" type="text/javascript">
+    </script>
+    <script type="text/javascript">
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
