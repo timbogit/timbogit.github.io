@@ -92,30 +92,55 @@ class: middle, center
   * How do we move forward?
 ---
 class: middle
-# Generalized transistion steps
+# Untangling the hairball
 
-* See [here](https://docs.google.com/document/d/1Zjb7E5e-5YoR1QGbS1Ein52P-zfXauiNmcYahAICPGE/edit#heading=h.126fwkzda2hf)
+* Identify data that can be isolated
+* Identify all clients
+* Assemble a set of APIs
+* Iterate on data schema and business logic
+* ... "rinse, wash, repeat" in flight
 
 ???
 Speak about the general steps
 
 ---
+---
 class: middle
-# Better way: avoid monorails!
+# Challenges
+
+* No small feat
+* Aiming for a moving target
+* N + 1 becomes "Nightmare + 1"
+* Winning the hearts and minds
+
+
+???
+* very time-consuming and hard to do while keeping open the business
+* anyone tried to convince 'the business' to wait for a year for a new feature?
+* inefficient SQL queries and hidden “joins” inside seemingly innocuous data access
+  code turn easily into cross-service joins over HTTP.
+* "Thinking SOA" is a complete mind-shift: testing, communication between teams about
+  ownersip and upgrades, deprecation policies supprt, timelines, PM, development env setup
+
+---
+class: middle
+# A better way: start out with a SOA
+
+It's not much harder / slower / more expensive
+Does require sticking to a couple of principles, though
+
+???
 
 * See:
   * SOA from the start ... [it's not that much harder](https://techblog.livingsocial.com/blog/2014/05/06/soa-the-what-the-why-and-the-rules-of-engagement/)
   * [full SOA series on LS Tech blog in general](https://techblog.livingsocial.com/blog/categories/soa/)
-
-???
-Speak about the general steps
 
 ---
 class: middle
 ### References
 * [https://techblog.livingsocial.com](https://techblog.livingsocial.com/)
 
-* [Martin Fowler's "Mocroservices"](http://martinfowler.com/articles/microservices.html)
+* [Martin Fowler's "Microservices"](http://martinfowler.com/articles/microservices.html)
 
 * This presentation at: http://timbogit.github.io/soa_at)livingsocial.remark.html
 ???
